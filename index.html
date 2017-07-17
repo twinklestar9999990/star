@@ -1,0 +1,398 @@
+<!doctype html>
+<head>
+    <title>D</title>
+    <script src="js/three.js"></script>
+    <script src="js/three.min.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/DeviceOrientationControls.js"></script>
+    <script src="js/MouseControls.js"></script>
+    <script src="js/socket.io-1.3.7.js"></script>
+    <script src="js/jquery-1.11.3.js"></script>
+    <script src="js/jquery-2.1.4.js"></script>
+    <script src="http://threejs.org/build/three.js"></script>
+    <script src="http://threejs.org/build/three.min.js"></script>
+    <script src="http://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script src="http://threejs.org/examples/js/controls/DeviceOrientationControls.js"></script>
+    <script src="http://threejs.org/examples/js/controls/MouseControls.js"></script>
+    <script src="http://cdn.socket.io/socket.io-1.3.7.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.3.js"></script>
+    <script src="http://code.jquery.com/jquery-2.1.4.js"></script>
+    <style>
+        body {
+            margin: 0px;
+        }
+
+        input {
+            width: 3%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        var camera, scene, renderer, container;
+        var socket = io();
+        var pointx, pointy;
+        var www=0.99, hhh=0.85;
+        init();
+        function init() { // SCENE MAKE
+            container = document.createElement('div');
+            document.body.appendChild(container);
+
+            scene = new THREE.Scene();
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth * www, window.innerHeight * hhh);
+            document.body.appendChild(renderer.domElement);
+            camera = new THREE.PerspectiveCamera(1, window.innerWidth / window.innerHeight, 1, 100000);
+            camera.position.z = 200;
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+            axe_cre("a", "100", "100", "100")
+
+            var render = function () {
+                requestAnimationFrame(render);
+                renderer.render(scene, camera);
+            };
+            render();
+
+            //ff = (255).toString(16)
+
+        }
+        var tanFOV = Math.tan(((Math.PI / 180) * camera.fov / 2));
+        var windowHeight = window.innerHeight;
+
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize(event) {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            // adjust the FOV
+            camera.fov = (360 / Math.PI) * Math.atan(tanFOV * (window.innerHeight / windowHeight));
+            camera.updateProjectionMatrix();
+            camera.lookAt(scene.position);
+            renderer.setSize(window.innerWidth * www, window.innerHeight * hhh);
+            renderer.render(scene, camera);
+        }
+        function axe_cre(a, x, y, z) {
+            eval("" + a + "axe = new THREE.AxisHelper();");
+            eval("" + a + "axe.scale.set(" + x + ", " + y + ", " + z + ");");
+            eval("scene.add(" + a + "axe);");
+        }
+        //http://jsfiddle.net/Q4Jpu/
+        function isnull(a) {
+            return typeof a == "undefined"
+        }
+        function obj_cre(a, x, y, z, r, g, b) { // WHEN OBJECT MAKE
+            stmt =
+            "if(typeof " + a + "mes != \"undefined\"){"
+            + " scene.remove(" + a + "mes); "
+            + "}"
+            + a + "geo = new THREE.BoxGeometry(1, 1, 1); "
+            + a + "mat = new THREE.MeshBasicMaterial({color: 0x" + r + g + b + " }); "
+            + a + "mes = new THREE.Mesh(" + a + "geo, " + a + "mat); "
+            + a + "mes.position.set(" + x + "," + y + "," + z + "); "
+            + "scene.add(" + a + "mes); "
+            + a+"mat.transparent = true;"
+            + a+"mat.opacity = opacity.value;";
+            console.log(stmt);
+            eval(stmt);
+        }
+        socket.on('obj_cre', function (msg) { // WHEN SERVER PUSH MESSAGE
+            stmt = "obj_cre(" + msg + ");"
+            stmt=
+            eval(stmt);
+        });
+        function obj_del(a) {
+            if (!isnull(a)) {
+                eval("scene.remove(" + a + "mes);")
+                console.log(a);
+            }
+        }
+        socket.on('obj_del', function (msg) { // WHEN SERVER PUSH MESSAGE
+            stmt = "obj_del(" + msg + ");"
+            console.log(stmt);
+            eval(stmt)
+        });
+        socket.on('clear', function (msg) {
+            location.reload();
+        })
+
+    </script><br />
+    <div id="obj"> 
+        <input id="objona" value="a" />
+        <input id="objoax" value="0"/>
+        <input id="objoay" value="0"/>
+        <input id="objoaz" value="0"/>
+        <input id="objocr" value="ff"/>
+        <input id="objocg" value="ff"/>
+        <input id="objocb" value="ff"/> 
+        <button id="objcre" onclick="socket.emit('obj_cre', [objona.value,objoax.value,objoay.value,objoaz.value,objocr.value,objocg.value,objocb.value]);">obj_c</button>
+        <button id="objdel" onclick="socket.emit('obj_del', [objona.value,objoax.value,objoay.value,objoaz.value,objocr.value,objocg.value,objocb.value]);">obj_d</button>
+    </div>
+    <div id="rul">
+        <input id="rulrsn" value="a"/>
+        <input id="rulrsx" value="0" />
+        <input id="rulrsy" value="0" />
+        <input id="rulrsz" value="1" />
+        <input id="rulron" value="b" />
+        <input id="rulrox" value="0" />
+        <input id="rulroy" value="0" />
+        <input id="rulroz" value="1" />
+        <button id="rulcre" onclick="socket.emit('rul_cre', [rulrsn.value,rulrsx.value,rulrsy.value,rulrsz.value,rulron.value,rulrox.value,rulroy.value,rulroz.value]);">rul_c</button>
+        <button id="ruldel" onclick="socket.emit('rul_del', [rulrsn.value,rulrsx.value,rulrsy.value,rulrsz.value,rulron.value,rulrox.value,rulroy.value,rulroz.value]);">rul_d</button>
+    </div> 
+    <input id="sva" value=1 />name<input id="eva" value=10 />/
+    <input id="svx" value=-10 />axisx<input id="evx" value=10 />/
+    <input id="svy" value=-10 />axisy<input id="evy" value=10 />/
+    <input id="svz" value=-10 />axisz<input id="evz" value=10 />/
+    <input id="scr" value=100 />color<input id="ecr" value=250 />/
+    <input id="scg" value=100 />colog<input id="ecg" value=250 />/
+    <input id="scb" value=100 />colob<input id="ecb" value=250 />/
+    <br />
+    <input id="svb" value=1 />sames<input id="evb" value=5 />/
+    <input id="srx" value=-10 />sxisx<input id="erx" value=10 />/
+    <input id="sry" value=-10 />sxisy<input id="ery" value=10 />/
+    <input id="srz" value=-10 />sxisz<input id="erz" value=10 />/
+    <br />
+    <input id="svc" value=6 />oames<input id="evc" value=10 />/
+    <input id="sox" value=10 />oxisx<input id="eox" value=100 />/
+    <input id="soy" value=10 />oxisy<input id="eoy" value=100 />/
+    <input id="soz" value=10 />oxisz<input id="eoz" value=100 />/
+    repeat<input id="repeat" value=20 />
+    opacity<input id="opacity" value=0.01 />
+    <button id="random" onclick="
+    for (i = 0; i < repeat.value; i++) {
+        socket.emit('obj_cre', [
+            ra(), // obj a
+            Math.floor(Math.random() * (evx.value-svx.value+1)) + Number(svx.value), // obj x
+            Math.floor(Math.random() * (evy.value-svy.value+1)) + Number(svy.value), // obj x
+            Math.floor(Math.random() * (evz.value-svz.value+1)) + Number(svz.value), // obj x
+           (Math.floor(Math.random() * (Number(ecr.value) % 256 - Number(scr.value) % 256 + 1)) + Number(scr.value) % 256).toString(16), // obj r
+           (Math.floor(Math.random() * (Number(ecg.value) % 256 - Number(scg.value) % 256 + 1)) + Number(scg.value) % 256).toString(16), // obj g
+           (Math.floor(Math.random() * (Number(ecb.value) % 256 - Number(scb.value) % 256 + 1)) + Number(scb.value) % 256).toString(16), // obj b
+        ]);
+        socket.emit('rul_cre', [
+            rb(), // rul rsn
+            Math.floor(Math.random() * (erx.value-srx.value+1)) + Number(srx.value), // rul rsx
+            Math.floor(Math.random() * (ery.value-sry.value+1)) + Number(sry.value), // rul rsy
+            Math.floor(Math.random() * (erz.value-srz.value+1)) + Number(srz.value), // rul rsz
+            rc(), // rul ron
+            Math.floor(Math.random() * (eox.value-sox.value+1)) + Number(sox.value), // rul rox
+            Math.floor(Math.random() * (eoy.value-soy.value+1)) + Number(soy.value), // rul roy
+            Math.floor(Math.random() * (eoz.value-soz.value+1)) + Number(soz.value)  // rul roz
+        ]);
+    }
+    ">random</button>
+    <button id="refresh" onclick="refresh();">refresh</button>
+    <button id="clear" onclick="clear();">clear</button>
+    <script>
+        function clear() {
+            socket.emit('clear',[]);
+        }
+        function refresh() {
+            sva.value = Math.floor(Math.random() * (26 - 0)) + Number(0);
+            eva.value = Math.floor(Math.random() * (26 - 0)) + Number(0);
+            svx.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            evx.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            svy.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            evy.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            svz.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            evz.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+
+            scr.value = Math.floor(Math.random() * (255 - 0)) + Number(0);
+            ecr.value = Math.floor(Math.random() * (255 - 0)) + Number(0);
+            scg.value = Math.floor(Math.random() * (255 - 0)) + Number(0);
+            ecg.value = Math.floor(Math.random() * (255 - 0)) + Number(0);
+            scb.value = Math.floor(Math.random() * (255 - 0)) + Number(0);
+            ecb.value = Math.floor(Math.random() * (255 - 0)) + Number(0);
+
+            svb.value = Math.floor(Math.random() * (26 - 0)) + Number(0);
+            evb.value = Math.floor(Math.random() * (26 - 0)) + Number(0);
+            srx.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            erx.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            sry.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            ery.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            srz.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            erz.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+
+            svc.value = Math.floor(Math.random() * (26 - 0)) + Number(0);
+            evc.value = Math.floor(Math.random() * (26 - 0)) + Number(0);
+            sox.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            eox.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            soy.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            eoy.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            soz.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+            eoz.value = Math.floor(Math.random() * (10 - 0)) + Number(0);
+        }
+        function ra() {
+            switch (Math.floor(Math.random() * (eva.value - sva.value)) + Number(sva.value)) {
+                case 0:
+                    return "a";
+                case 1:
+                    return "b";
+                case 2:
+                    return "c";
+                case 3:
+                    return "d";
+                case 4:
+                    return "e";
+                case 5:
+                    return "f";
+                case 6:
+                    return "g";
+                case 7:
+                    return "h";
+                case 8:
+                    return "i";
+                case 9:
+                    return "j";
+                case 10:
+                    return "k";
+                case 11:
+                    return "l";
+                case 12:
+                    return "m";
+                case 13:
+                    return "n";
+                case 14:
+                    return "o";
+                case 15:
+                    return "p";
+                case 16:
+                    return "q";
+                case 17:
+                    return "r";
+                case 18:
+                    return "s";
+                case 19:
+                    return "t";
+                case 20:
+                    return "u";
+                case 21:
+                    return "v";
+                case 22:
+                    return "w";
+                case 23:
+                    return "x";
+                case 24:
+                    return "y";
+                default:
+                    return "z";
+            }
+        }
+        function rb() {
+            switch (Math.floor(Math.random() * (evb.value - svb.value)) + Number(svb.value)) {
+                case 0:
+                    return "a";
+                case 1:
+                    return "b";
+                case 2:
+                    return "c";
+                case 3:
+                    return "d";
+                case 4:
+                    return "e";
+                case 5:
+                    return "f";
+                case 6:
+                    return "g";
+                case 7:
+                    return "h";
+                case 8:
+                    return "i";
+                case 9:
+                    return "j";
+                case 10:
+                    return "k";
+                case 11:
+                    return "l";
+                case 12:
+                    return "m";
+                case 13:
+                    return "n";
+                case 14:
+                    return "o";
+                case 15:
+                    return "p";
+                case 16:
+                    return "q";
+                case 17:
+                    return "r";
+                case 18:
+                    return "s";
+                case 19:
+                    return "t";
+                case 20:
+                    return "u";
+                case 21:
+                    return "v";
+                case 22:
+                    return "w";
+                case 23:
+                    return "x";
+                case 24:
+                    return "y";
+                default:
+                    return "z";
+            }
+        }
+        function rc() {
+            switch (Math.floor(Math.random() * (evc.value - svc.value)) + Number(svc.value)) {
+                case 0:
+                    return "a";
+                case 1:
+                    return "b";
+                case 2:
+                    return "c";
+                case 3:
+                    return "d";
+                case 4:
+                    return "e";
+                case 5:
+                    return "f";
+                case 6:
+                    return "g";
+                case 7:
+                    return "h";
+                case 8:
+                    return "i";
+                case 9:
+                    return "j";
+                case 10:
+                    return "k";
+                case 11:
+                    return "l";
+                case 12:
+                    return "m";
+                case 13:
+                    return "n";
+                case 14:
+                    return "o";
+                case 15:
+                    return "p";
+                case 16:
+                    return "q";
+                case 17:
+                    return "r";
+                case 18:
+                    return "s";
+                case 19:
+                    return "t";
+                case 20:
+                    return "u";
+                case 21:
+                    return "v";
+                case 22:
+                    return "w";
+                case 23:
+                    return "x";
+                case 24:
+                    return "y";
+                default:
+                    return "z";
+            }
+        }
+    </script>
+</body>
+
+
+
+
